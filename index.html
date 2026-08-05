@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASWELL Signature Generator</title>
+<style>
+  :root{
+    --page-bg:#f4f5f2;
+    --card-bg:#ffffff;
+    --ink:#1b2a41;
+    --muted:#6b7280;
+    --line:#e4e6e0;
+    --accent:#5c8a7a;
+    --accent-ink:#0f1c2b;
+    --field-bg:#fbfbfa;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --page-bg:#14181b;
+      --card-bg:#1d2226;
+      --ink:#eef1f4;
+      --muted:#a3acb3;
+      --line:#333a3f;
+      --accent:#7fb3a0;
+      --accent-ink:#f4f6f5;
+      --field-bg:#22272b;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--page-bg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:48px 20px 64px;
+  }
+  .wrap{
+    width:100%;
+    max-width:920px;
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:600;
+    margin:0 0 8px;
+  }
+  h1{
+    font-size:24px;
+    margin:0 0 6px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    font-size:14px;
+    color:var(--muted);
+    margin:0 0 28px;
+    line-height:1.5;
+    max-width:64ch;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:300px 1fr;
+    gap:24px;
+    align-items:start;
+  }
+  @media (max-width:740px){
+    .layout{ grid-template-columns:1fr; }
+  }
+  .panel{
+    background:var(--card-bg);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px;
+  }
+  .panel h2{
+    font-size:12px;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--muted);
+    margin:0 0 16px;
+    font-weight:600;
+  }
+  .panel h2.group{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .field{
+    margin-bottom:14px;
+  }
+  .field label{
+    display:block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:5px;
+  }
+  .field input[type="text"],
+  .field input[type="email"]{
+    width:100%;
+    padding:9px 10px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--field-bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+  }
+  .field input:focus{
+    outline:2px solid var(--accent);
+    outline-offset:0;
+    border-color:transparent;
+  }
+  .field .hint{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:4px;
+    line-height:1.4;
+  }
+  .upload-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .upload-btn{
+    display:inline-block;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+    background:var(--field-bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 12px;
+    cursor:pointer;
+  }
+  .upload-btn:hover{ border-color:var(--accent); }
+  .upload-status{
+    font-size:11.5px;
+    color:var(--accent);
+    font-weight:600;
+  }
+  .clear-link{
+    font-size:11.5px;
+    color:var(--muted);
+    background:none;
+    border:none;
+    padding:0;
+    text-decoration:underline;
+    cursor:pointer;
+    font-weight:400;
+  }
+  .checkbox-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .checkbox-row input{ width:15px; height:15px; }
+  .checkbox-row label{
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink);
+  }
+  fieldset{
+    border:none;
+    padding:0;
+    margin:0;
+  }
+  fieldset[disabled] .field,
+  fieldset[disabled] .upload-row{
+    opacity:.45;
+    pointer-events:none;
+  }
+  .locked{
+    margin-top:22px;
+    padding-top:16px;
+    border-top:1px solid var(--line);
+  }
+  .locked p{
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.6;
+    margin:0;
+  }
+  .toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .step{
+    font-size:13px;
+    color:var(--muted);
+  }
+  .step b{ color:var(--ink); }
+  button.primary{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:600;
+    color:#fff;
+    background:var(--accent-ink);
+    border:none;
+    border-radius:6px;
+    padding:9px 16px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  button.primary:hover{ opacity:.88; }
+  button.primary:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  button.primary.copied{ background:var(--accent); }
+  .sig-frame{
+    border:1px dashed var(--line);
+    border-radius:8px;
+    padding:20px;
+    background:#ffffff;
+    overflow-x:auto;
+  }
+  .note{
+    font-size:12px;
+    color:var(--muted);
+    margin:16px 0 0;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="eyebrow">ASWELL &middot; Signature Generator</p>
+  <h1>Team email signature</h1>
+  <p class="sub">Fill in your details on the left, then copy the signature on the right into Outlook (Desktop or Web) or Gmail. Logo and social links stay locked to the brand standard for everyone on the team; the photo and banner are yours to customize.</p>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Your details</h2>
+      <div class="field">
+        <label for="inName">Full name</label>
+        <input id="inName" type="text" value="Strawberry Joy Mercado">
+      </div>
+      <div class="field">
+        <label for="inTitle">Job title</label>
+        <input id="inTitle" type="text" value="Virtual Assistant | ASWELL - Australasian Wellness Association">
+      </div>
+      <div class="field">
+        <label for="inPhone">Phone</label>
+        <input id="inPhone" type="text" value="+63 939 851 8867">
+        <p class="hint">Include the country code — this becomes the click-to-call link.</p>
+      </div>
+      <div class="field">
+        <label for="inEmail">Email</label>
+        <input id="inEmail" type="email" value="hello@aswell.au">
+      </div>
+
+      <h2 class="group">Photo</h2>
+      <div class="field">
+        <label for="inPhoto">Photo URL</label>
+        <input id="inPhoto" type="text" value="https://aswell.au/wp-content/uploads/2026/08/Strawberry.png">
+        <p class="hint">A hosted web link works best across every mail client.</p>
+      </div>
+      <div class="field">
+        <div class="upload-row">
+          <label class="upload-btn" for="inPhotoFile">Upload from computer</label>
+          <input id="inPhotoFile" type="file" accept="image/*" style="display:none;">
+          <span id="photoUploadStatus" class="upload-status" style="display:none;">Uploaded ✓</span>
+          <button id="photoClearBtn" class="clear-link" type="button" style="display:none;">use URL instead</button>
+        </div>
+        <p class="hint">Uploading embeds the photo directly in the signature — no hosting needed. Displays reliably in Gmail and Outlook Web; for guaranteed display in Outlook Desktop, host the file and use the URL field above instead.</p>
+      </div>
+
+      <h2 class="group">Banner</h2>
+      <div class="checkbox-row">
+        <input id="inBannerShow" type="checkbox" checked>
+        <label for="inBannerShow">Show banner</label>
+      </div>
+      <fieldset id="bannerFields">
+        <div class="field">
+          <label for="inBannerImg">Banner image URL</label>
+          <input id="inBannerImg" type="text" value="https://aswell.au/wp-content/uploads/2026/08/Wellness-Summit.png">
+        </div>
+        <div class="field">
+          <label for="inBannerLink">Banner click-through link</label>
+          <input id="inBannerLink" type="text" value="https://www.wellnesssummit.com.au">
+        </div>
+      </fieldset>
+
+      <div class="locked">
+        <p><strong>Locked to brand:</strong> ASWELL logo and the Instagram / Facebook / LinkedIn / Website icons stay the same for every teammate, along with the confidentiality disclaimer.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="toolbar">
+        <p class="step"><b>Copy signature</b>, then paste into your signature editor</p>
+        <button id="copyBtn" class="primary" type="button">Copy signature</button>
+      </div>
+
+      <div class="sig-frame">
+<!--sig-start-->
+<table id="sig" role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;font-family:Arial,Helvetica,sans-serif;border-collapse:collapse;">
+  <tr>
+    <td style="width:170px;vertical-align:top;padding:0;" valign="top">
+      <img id="sigPhoto" src="https://aswell.au/wp-content/uploads/2026/08/Strawberry.png" width="150" height="150" alt="Strawberry Joy Mercado" style="display:block;width:150px;height:150px;border-radius:50%;border:3px solid #f0c93e;">
+    </td>
+    <td style="width:20px;line-height:1px;font-size:1px;">&nbsp;</td>
+    <td style="vertical-align:top;padding-top:2px;" valign="top">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+        <tr>
+          <td id="sigName" style="font-family:Arial,Helvetica,sans-serif;font-size:20px;line-height:24px;font-weight:bold;color:#1b2a41;padding:0 0 3px 0;">Strawberry Joy Mercado</td>
+        </tr>
+        <tr>
+          <td id="sigTitle" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:16px;color:#6b6b6b;padding:0 0 12px 0;">Virtual Assistant | ASWELL - Australasian Wellness Association</td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #d8d8d8;font-size:1px;line-height:1px;padding:0;">&nbsp;</td>
+        </tr>
+        <tr>
+          <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#1b1b1b;padding:12px 0 0 0;">
+            <span style="font-weight:bold;">Phone:</span> <a id="sigPhoneLink" href="tel:+639398518867" style="color:#1b1b1b;text-decoration:none;">+63 939 851 8867</a>
+          </td>
+        </tr>
+        <tr>
+          <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#1b1b1b;padding:2px 0 0 0;">
+            <span style="font-weight:bold;">Email:</span> <a id="sigEmailLink" href="mailto:hello@aswell.au" style="color:#1b1b1b;text-decoration:none;">hello@aswell.au</a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" style="height:16px;line-height:1px;font-size:1px;">&nbsp;</td>
+  </tr>
+  <tr>
+    <td style="width:170px;vertical-align:middle;padding:0;text-align:center;" valign="middle" align="center">
+      <img src="https://aswell.au/wp-content/uploads/2026/08/Aswell-Signature-logo-e1785903677361.png" width="110" alt="ASWELL - Australasian Wellness Assoc." style="display:block;width:110px;height:auto;border:0;margin:0 auto;">
+    </td>
+    <td style="width:20px;line-height:1px;font-size:1px;">&nbsp;</td>
+    <td style="vertical-align:middle;" valign="middle">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td style="padding:0 8px 0 0;">
+            <a href="https://www.instagram.com/aswellassoc/"><img src="https://aswell.au/wp-content/uploads/2026/08/IG.png" width="20" height="20" alt="Instagram" style="display:block;width:20px;height:20px;border:0;"></a>
+          </td>
+          <td style="padding:0 8px 0 0;">
+            <a href="https://www.facebook.com/ASWELLassoc"><img src="https://aswell.au/wp-content/uploads/2026/08/FB.png" width="20" height="20" alt="Facebook" style="display:block;width:20px;height:20px;border:0;"></a>
+          </td>
+          <td style="padding:0 8px 0 0;">
+            <a href="https://www.linkedin.com/company/aswellassoc/"><img src="https://aswell.au/wp-content/uploads/2026/08/LI.png" width="20" height="20" alt="LinkedIn" style="display:block;width:20px;height:20px;border:0;"></a>
+          </td>
+          <td style="padding:0;">
+            <a href="https://www.aswell.au"><img src="https://aswell.au/wp-content/uploads/2026/08/WB.png" width="20" height="20" alt="Website" style="display:block;width:20px;height:20px;border:0;"></a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr id="bannerSpacerRow">
+    <td colspan="3" style="height:22px;line-height:1px;font-size:1px;">&nbsp;</td>
+  </tr>
+  <tr id="bannerRow">
+    <td colspan="3" style="padding:0;">
+      <a id="sigBannerLink" href="https://www.wellnesssummit.com.au">
+        <img id="sigBannerImg" src="https://aswell.au/wp-content/uploads/2026/08/Wellness-Summit.png" width="420" alt="Join us for our official launch at The Wellness Summit, October 25-28, 2026. Connect, Collaborate, Celebrate. www.wellnesssummit.com.au" style="display:block;width:420px;max-width:420px;height:auto;border:0;">
+      </a>
+    </td>
+  </tr>
+  <tr id="disclaimerRow">
+    <td colspan="3" style="padding:14px 0 0 0;font-family:Arial,Helvetica,sans-serif;font-size:10px;line-height:14px;color:#8a8a8a;">
+      This e-mail message and accompanying data may contain information that is confidential.<br>If you have received this e-mail message in error, please delete it and notify me. Thank you.
+    </td>
+  </tr>
+</table>
+<!--sig-end-->
+      </div>
+      <p class="note">The logo and icons stay hosted at aswell.au and load live. An uploaded photo is embedded directly in the signature; everything else uses no attachments, no CID references.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  var inName = document.getElementById('inName');
+  var inTitle = document.getElementById('inTitle');
+  var inPhone = document.getElementById('inPhone');
+  var inEmail = document.getElementById('inEmail');
+  var inPhoto = document.getElementById('inPhoto');
+  var inPhotoFile = document.getElementById('inPhotoFile');
+  var photoUploadStatus = document.getElementById('photoUploadStatus');
+  var photoClearBtn = document.getElementById('photoClearBtn');
+  var inBannerShow = document.getElementById('inBannerShow');
+  var inBannerImg = document.getElementById('inBannerImg');
+  var inBannerLink = document.getElementById('inBannerLink');
+  var bannerFields = document.getElementById('bannerFields');
+
+  var sigName = document.getElementById('sigName');
+  var sigTitle = document.getElementById('sigTitle');
+  var sigPhoneLink = document.getElementById('sigPhoneLink');
+  var sigEmailLink = document.getElementById('sigEmailLink');
+  var sigPhoto = document.getElementById('sigPhoto');
+  var sigBannerImg = document.getElementById('sigBannerImg');
+  var sigBannerLink = document.getElementById('sigBannerLink');
+
+  var bannerSpacerRow = document.getElementById('bannerSpacerRow');
+  var bannerRow = document.getElementById('bannerRow');
+  var disclaimerRow = document.getElementById('disclaimerRow');
+  var bannerAnchorParent = bannerRow.parentNode;
+
+  var uploadedPhotoData = null;
+
+  function telHref(raw){
+    var trimmed = (raw || '').trim();
+    var plus = trimmed.charAt(0) === '+' ? '+' : '';
+    return 'tel:' + plus + trimmed.replace(/[^0-9]/g, '');
+  }
+
+  function render(){
+    sigName.textContent = inName.value || '';
+    sigTitle.textContent = inTitle.value || '';
+    sigPhoneLink.textContent = inPhone.value || '';
+    sigPhoneLink.href = telHref(inPhone.value);
+    sigEmailLink.textContent = inEmail.value || '';
+    sigEmailLink.href = 'mailto:' + (inEmail.value || '').trim();
+
+    var photoSrc = uploadedPhotoData || inPhoto.value.trim();
+    if (photoSrc) {
+      sigPhoto.src = photoSrc;
+      sigPhoto.alt = inName.value || 'Profile photo';
+    }
+
+    sigBannerImg.src = inBannerImg.value.trim();
+    sigBannerLink.href = inBannerLink.value.trim();
+  }
+
+  [inName, inTitle, inPhone, inEmail, inPhoto, inBannerImg, inBannerLink].forEach(function(el){
+    el.addEventListener('input', render);
+  });
+
+  inPhotoFile.addEventListener('change', function(){
+    var file = inPhotoFile.files && inPhotoFile.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      uploadedPhotoData = reader.result;
+      photoUploadStatus.style.display = 'inline';
+      photoClearBtn.style.display = 'inline';
+      render();
+    };
+    reader.readAsDataURL(file);
+  });
+
+  photoClearBtn.addEventListener('click', function(){
+    uploadedPhotoData = null;
+    inPhotoFile.value = '';
+    photoUploadStatus.style.display = 'none';
+    photoClearBtn.style.display = 'none';
+    render();
+  });
+
+  function updateBannerVisibility(){
+    var show = inBannerShow.checked;
+    bannerFields.disabled = !show;
+    if (show) {
+      if (!bannerSpacerRow.parentNode) bannerAnchorParent.insertBefore(bannerSpacerRow, disclaimerRow);
+      if (!bannerRow.parentNode) bannerAnchorParent.insertBefore(bannerRow, disclaimerRow);
+    } else {
+      if (bannerSpacerRow.parentNode) bannerAnchorParent.removeChild(bannerSpacerRow);
+      if (bannerRow.parentNode) bannerAnchorParent.removeChild(bannerRow);
+    }
+  }
+
+  inBannerShow.addEventListener('change', updateBannerVisibility);
+
+  var btn = document.getElementById('copyBtn');
+  btn.addEventListener('click', function(){
+    var el = document.getElementById('sig');
+    var finish = function(label, isCopied){
+      var original = 'Copy signature';
+      btn.textContent = label;
+      if (isCopied) btn.classList.add('copied');
+      setTimeout(function(){
+        btn.textContent = original;
+        btn.classList.remove('copied');
+      }, 2500);
+    };
+    var selectFallback = function(){
+      if (window.getSelection && document.createRange) {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      finish('Selected — press Ctrl/Cmd+C', false);
+    };
+    if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write) {
+      var html = el.outerHTML;
+      var text = el.innerText;
+      var item = new ClipboardItem({
+        'text/html': new Blob([html], {type:'text/html'}),
+        'text/plain': new Blob([text], {type:'text/plain'})
+      });
+      navigator.clipboard.write([item]).then(function(){
+        finish('Copied to clipboard', true);
+      }).catch(selectFallback);
+    } else {
+      selectFallback();
+    }
+  });
+
+  render();
+</script>
+
+</body>
+</html>
