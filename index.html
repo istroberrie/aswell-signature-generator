@@ -257,6 +257,11 @@
         <label for="inEmail">Email</label>
         <input id="inEmail" type="email" value="president@aswell.au">
       </div>
+      <div class="field">
+        <label for="inBooking">Booking link</label>
+        <input id="inBooking" type="text" value="https://booking.aswell.au/book-a-discovery-call">
+        <p class="hint">Leave blank to hide the button from the signature.</p>
+      </div>
 
       <h2 class="group">Photo</h2>
       <div class="field">
@@ -330,6 +335,17 @@
             <span style="font-weight:bold;">Email:</span> <a id="sigEmailLink" href="mailto:president@aswell.au" style="color:#1b1b1b;text-decoration:none;">president@aswell.au</a>
           </td>
         </tr>
+        <tr id="sigBookingRow">
+          <td style="padding:10px 0 0 0;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="background-color:#1b2a41;border-radius:4px;">
+                  <a id="sigBookingLink" href="https://booking.aswell.au/book-a-discovery-call" style="display:inline-block;padding:8px 16px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:14px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:4px;">Book a Call</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
       </table>
     </td>
   </tr>
@@ -388,6 +404,7 @@
   var inTitle = document.getElementById('inTitle');
   var inPhone = document.getElementById('inPhone');
   var inEmail = document.getElementById('inEmail');
+  var inBooking = document.getElementById('inBooking');
   var inPhoto = document.getElementById('inPhoto');
   var inPhotoFile = document.getElementById('inPhotoFile');
   var photoUploadStatus = document.getElementById('photoUploadStatus');
@@ -401,6 +418,8 @@
   var sigTitle = document.getElementById('sigTitle');
   var sigPhoneLink = document.getElementById('sigPhoneLink');
   var sigEmailLink = document.getElementById('sigEmailLink');
+  var sigBookingRow = document.getElementById('sigBookingRow');
+  var sigBookingLink = document.getElementById('sigBookingLink');
   var sigPhoto = document.getElementById('sigPhoto');
   var sigBannerImg = document.getElementById('sigBannerImg');
   var sigBannerLink = document.getElementById('sigBannerLink');
@@ -426,6 +445,10 @@
     sigEmailLink.textContent = inEmail.value || '';
     sigEmailLink.href = 'mailto:' + (inEmail.value || '').trim();
 
+    var bookingUrl = inBooking.value.trim();
+    sigBookingRow.style.display = bookingUrl ? '' : 'none';
+    sigBookingLink.href = bookingUrl;
+
     var photoSrc = uploadedPhotoData || inPhoto.value.trim();
     if (photoSrc) {
       sigPhoto.src = photoSrc;
@@ -436,7 +459,7 @@
     sigBannerLink.href = inBannerLink.value.trim();
   }
 
-  [inName, inTitle, inPhone, inEmail, inPhoto, inBannerImg, inBannerLink].forEach(function(el){
+  [inName, inTitle, inPhone, inEmail, inBooking, inPhoto, inBannerImg, inBannerLink].forEach(function(el){
     el.addEventListener('input', render);
   });
 
