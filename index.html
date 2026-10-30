@@ -110,6 +110,26 @@
     border:1px solid var(--line);
     border-radius:6px;
   }
+  .field select{
+    width:100%;
+    padding:9px 10px;
+    font-size:13px;
+    font-family:inherit;
+    color:var(--ink);
+    background:var(--field-bg);
+    border:1px solid var(--line);
+    border-radius:6px;
+  }
+  .field select:focus{
+    outline:2px solid var(--accent);
+    outline-offset:0;
+    border-color:transparent;
+  }
+  .preset-actions{
+    display:flex;
+    gap:14px;
+    margin-top:8px;
+  }
   .field input:focus{
     outline:2px solid var(--accent);
     outline-offset:0;
@@ -239,7 +259,18 @@
 
   <div class="layout">
     <div class="panel">
-      <h2>Your details</h2>
+      <h2>Team preset</h2>
+      <div class="field">
+        <label for="inPreset">Load a teammate</label>
+        <select id="inPreset"></select>
+        <div class="preset-actions">
+          <button id="presetSaveBtn" class="clear-link" type="button">Save current as preset</button>
+          <button id="presetDeleteBtn" class="clear-link" type="button" style="display:none;">Delete preset</button>
+        </div>
+        <p class="hint">Saved presets live in this browser only. Uploaded photos are not saved, use a photo URL.</p>
+      </div>
+
+      <h2 class="group">Your details</h2>
       <div class="field">
         <label for="inName">Full name</label>
         <input id="inName" type="text" value="Samantha Dunn">
@@ -266,7 +297,7 @@
       <h2 class="group">Photo</h2>
       <div class="field">
         <label for="inPhoto">Photo URL</label>
-        <input id="inPhoto" type="text" value="https://aswell.au/wp-content/uploads/2026/08/Sam.png">
+        <input id="inPhoto" type="text" value="https://aswell.au/wp-content/uploads/2026/10/Sam.png">
         <p class="hint">A hosted web link works best across every mail client.</p>
       </div>
       <div class="field">
@@ -311,7 +342,7 @@
 <table id="sig" role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="width:600px;max-width:600px;font-family:Arial,Helvetica,sans-serif;border-collapse:collapse;">
   <tr>
     <td style="width:170px;vertical-align:top;padding:0;" valign="top">
-      <img id="sigPhoto" src="https://aswell.au/wp-content/uploads/2026/08/Sam.png" width="150" height="150" alt="Samantha Dunn" style="display:block;width:150px;height:150px;border-radius:50%;">
+      <img id="sigPhoto" src="https://aswell.au/wp-content/uploads/2026/10/Sam.png" width="150" height="150" alt="Samantha Dunn" style="display:block;width:150px;height:150px;border-radius:50%;">
     </td>
     <td style="width:20px;line-height:1px;font-size:1px;">&nbsp;</td>
     <td style="vertical-align:middle;" valign="middle">
@@ -325,7 +356,7 @@
         <tr>
           <td style="border-top:1px solid #d8d8d8;font-size:1px;line-height:1px;padding:0;">&nbsp;</td>
         </tr>
-        <tr>
+        <tr id="sigPhoneRow">
           <td style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#1b1b1b;padding:12px 0 0 0;">
             <span style="font-weight:bold;">Phone:</span> <a id="sigPhoneLink" href="tel:+61466373449" style="color:#1b1b1b;text-decoration:none;">+61 466 373 449</a>
           </td>
@@ -436,6 +467,10 @@
     sigTitle.textContent = inTitle.value || '';
     sigPhoneLink.textContent = inPhone.value || '';
     sigPhoneLink.href = telHref(inPhone.value);
+    var sigPhoneRow = document.getElementById('sigPhoneRow');
+    var hasPhone = !!inPhone.value.trim();
+    if (sigPhoneRow) sigPhoneRow.style.display = hasPhone ? '' : 'none';
+    sigEmailLink.parentNode.style.paddingTop = hasPhone ? '2px' : '12px';
     sigEmailLink.textContent = inEmail.value || '';
     sigEmailLink.href = 'mailto:' + (inEmail.value || '').trim();
 
@@ -444,10 +479,8 @@
     sigBookingLink.href = bookingUrl;
 
     var photoSrc = uploadedPhotoData || inPhoto.value.trim();
-    if (photoSrc) {
-      sigPhoto.src = photoSrc;
-      sigPhoto.alt = inName.value || 'Profile photo';
-    }
+    sigPhoto.src = photoSrc || 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    sigPhoto.alt = inName.value || 'Profile photo';
 
     sigBannerImg.src = inBannerImg.value.trim();
     sigBannerLink.href = inBannerLink.value.trim();
@@ -529,6 +562,181 @@
     }
   });
 
+  var inPreset = document.getElementById('inPreset');
+  var presetSaveBtn = document.getElementById('presetSaveBtn');
+  var presetDeleteBtn = document.getElementById('presetDeleteBtn');
+  var STORE_KEY = 'aswellSigPresets';
+
+  var builtInPresets = [
+    {
+      name: 'Samantha Dunn',
+      title: 'President | ASWELL - Australasian Wellness Association',
+      phone: '+61 466 373 449',
+      email: 'president@aswell.au',
+      booking: 'https://booking.aswell.au/book-a-discovery-call',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Sam.png'
+    },
+    {
+      name: 'Sudharma Hiremath',
+      title: 'Treasurer | ASWELL - Australasian Wellness Association',
+      phone: '',
+      email: 'treasurer@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Sudharma-Hiremath.png'
+    },
+    {
+      name: 'Adele Picton',
+      title: '',
+      phone: '',
+      email: '',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Adele-Picton.png'
+    },
+    {
+      name: 'Judy Chapman',
+      title: 'Director | ASWELL - Australasian Wellness Association',
+      phone: '',
+      email: '',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Judy-Chapman.png'
+    },
+    {
+      name: 'Strawberry Joy Mercado',
+      title: 'Virtual Assistant | ASWELL - Australasian Wellness Association',
+      phone: '+63 939 8518867',
+      email: 'hello@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Strawberry.png'
+    },
+    {
+      name: 'Madonna Melrose',
+      title: 'Events | ASWELL - Australasian Wellness Association',
+      phone: '+61 418 970 829',
+      email: 'events@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Madonna.png'
+    },
+    {
+      name: 'Kate Leff',
+      title: 'Marketing & Media | ASWELL - Australasian Wellness Association',
+      phone: '+61 438 073 924',
+      email: 'media@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Kate-Leff.png'
+    },
+    {
+      name: 'Cassandra Carey',
+      title: 'Director and Secretary | ASWELL - Australasian Wellness Association',
+      phone: '+61 400 635 665',
+      email: 'secretary@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/10/Cassandra-Carey.png'
+    },
+    {
+      name: 'Marie Adele',
+      title: 'Partnership & Funding | ASWELL - Australasian Wellness Association',
+      phone: '+61 418 181 826',
+      email: 'partners@aswell.au',
+      booking: '',
+      photo: 'https://aswell.au/wp-content/uploads/2026/09/Marie-Adele-1.png'
+    }
+  ];
+  var blankPreset = {
+    name: '', title: '', phone: '', email: '', booking: '',
+    photo: ""
+  };
+
+  function loadSaved(){
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+  function writeSaved(list){
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function currentValues(){
+    return {
+      name: inName.value.trim(),
+      title: inTitle.value.trim(),
+      phone: inPhone.value.trim(),
+      email: inEmail.value.trim(),
+      booking: inBooking.value.trim(),
+      photo: inPhoto.value.trim()
+    };
+  }
+
+  function applyPreset(p){
+    inName.value = p.name || '';
+    inTitle.value = p.title || '';
+    inPhone.value = p.phone || '';
+    inEmail.value = p.email || '';
+    inBooking.value = p.booking || '';
+    inPhoto.value = p.photo || '';
+    uploadedPhotoData = null;
+    inPhotoFile.value = '';
+    photoUploadStatus.style.display = 'none';
+    photoClearBtn.style.display = 'none';
+    render();
+  }
+
+  // option values: "b:<i>" built-in, "s:<i>" saved, "blank"
+  function buildPresetOptions(selectValue){
+    var saved = loadSaved();
+    var html = '<option value="blank">Blank - start from scratch</option>';
+    html += '<optgroup label="Team">';
+    builtInPresets.forEach(function(p, i){
+      html += '<option value="b:' + i + '">' + escapeHtml(p.name) + '</option>';
+    });
+    html += '</optgroup>';
+    if (saved.length) {
+      html += '<optgroup label="Saved in this browser">';
+      saved.forEach(function(p, i){
+        html += '<option value="s:' + i + '">' + escapeHtml(p.name || 'Untitled') + '</option>';
+      });
+      html += '</optgroup>';
+    }
+    inPreset.innerHTML = html;
+    inPreset.value = selectValue || 'b:0';
+    presetDeleteBtn.style.display = inPreset.value.charAt(0) === 's' ? 'inline' : 'none';
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  inPreset.addEventListener('change', function(){
+    var v = inPreset.value;
+    if (v === 'blank') applyPreset(blankPreset);
+    else if (v.charAt(0) === 'b') applyPreset(builtInPresets[+v.slice(2)]);
+    else applyPreset(loadSaved()[+v.slice(2)] || blankPreset);
+    presetDeleteBtn.style.display = v.charAt(0) === 's' ? 'inline' : 'none';
+  });
+
+  presetSaveBtn.addEventListener('click', function(){
+    var vals = currentValues();
+    if (!vals.name) { inName.focus(); return; }
+    var saved = loadSaved();
+    var idx = -1;
+    saved.forEach(function(p, i){ if (p.name.toLowerCase() === vals.name.toLowerCase()) idx = i; });
+    if (idx > -1) saved[idx] = vals; else { saved.push(vals); idx = saved.length - 1; }
+    writeSaved(saved);
+    buildPresetOptions('s:' + idx);
+  });
+
+  presetDeleteBtn.addEventListener('click', function(){
+    var v = inPreset.value;
+    if (v.charAt(0) !== 's') return;
+    var saved = loadSaved();
+    saved.splice(+v.slice(2), 1);
+    writeSaved(saved);
+    buildPresetOptions('blank');
+    applyPreset(blankPreset);
+  });
+
+  buildPresetOptions('b:0');
   render();
 </script>
 
